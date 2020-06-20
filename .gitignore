@@ -1,0 +1,26 @@
+target/
+*.jar
+*.war
+
+# idea ignore
+.idea/
+*.ipr
+*.iml
+*.iws
+ 
+# logs #
+logs
+ 
+# temp ignore
+*.log
+*.cache
+*.diff
+*.patch
+*.tmp
+*.java~
+*.properties~
+*.xml~
+*.svn
+
+# system ignore
+.DS_Store
