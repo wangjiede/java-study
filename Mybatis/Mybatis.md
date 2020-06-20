@@ -95,7 +95,7 @@
 
   - Mybatis中自带的别名:
 
-    ![image-20200620142254721](/Users/admin/Documents/白嫖/Mybatis/images/image-20200620142254721.png)
+    ![image-20200620142254721](./images/image-20200620142254721.png)
 
 - **typeHandlers**：类型处理器，处理java类型与数据库类型的转换，可以指定类型转换器，也可以自定义。
 
@@ -536,7 +536,7 @@ Sql中参数位置支持的属性：javaType、jdbcType、mode、numericScale、
 
 ### 缓存结构图
 
-<img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620172323691.png" alt="image-20200620172323691" style="zoom:50%;" />
+<img src="./images/image-20200620172323691.png" alt="image-20200620172323691" style="zoom:50%;" />
 
 ## Spring整合
 
@@ -805,23 +805,23 @@ MyBatis Generator：简称MBG，是一个专门为Mybatis使用者定制的代�
 
 1. 根据配置文件创建SQLSessionFactory
 
-   <img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620172442513.png" alt="image-20200620172442513" style="zoom:50%;" />
+   <img src="./images/image-20200620172442513.png" alt="image-20200620172442513" style="zoom:50%;" />
 
 2. 获取SqlSession
 
-   <img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620172646549.png" alt="image-20200620172646549" style="zoom:50%;" />
+   <img src="./images/image-20200620172646549.png" alt="image-20200620172646549" style="zoom:50%;" />
 
 3. 获取接口代理对象
 
-   <img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620172713966.png" alt="image-20200620172713966" style="zoom:50%;" />
+   <img src="./images/image-20200620172713966.png" alt="image-20200620172713966" style="zoom:50%;" />
 
 4. 执行查询
 
-   <img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620172906186.png" alt="image-20200620172906186" style="zoom:50%;" />
+   <img src="./images/image-20200620172906186.png" alt="image-20200620172906186" style="zoom:50%;" />
 
 5. 查询流程总结
 
-   <img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620172954665.png" alt="image-20200620172954665" style="zoom:50%;" />
+   <img src="./images/image-20200620172954665.png" alt="image-20200620172954665" style="zoom:50%;" />
 
 ## 插件开发
 
@@ -860,7 +860,7 @@ MyBatis在四大对象的创建过程中，都会有插件进行 介入。插件
 
 4. 多个插件情况下，我们往往需要在某个插件中分离出目标 对象。可以借助MyBatis提供的SystemMetaObject类来进行获 取最后一层的h以及target属性的值。
 
-   <img src="/Users/admin/Documents/白嫖/Mybatis/images/image-20200620173913049.png" alt="image-20200620173913049" style="zoom:50%;" />
+   <img src="./images/image-20200620173913049.png" alt="image-20200620173913049" style="zoom:50%;" />
 
 ### Interceptor接口
 
