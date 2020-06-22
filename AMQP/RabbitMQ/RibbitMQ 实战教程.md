@@ -668,6 +668,8 @@ channel.basicConsume(queue,true,new DefaultConsumer(channel){
 
  ![image-20200316114000459](images/image-20200316114000459.png)
 
+------
+
 ## 5. SpringBoot中使用RabbitMQ
 
 ### 5.0 搭建初始环境
@@ -800,7 +802,6 @@ spring:
    }
    ```
 
-   
 
 ### 5.4 Route 路由模型
 
