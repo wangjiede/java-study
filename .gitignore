@@ -1,13 +1,17 @@
-target/
-*.jar
-*.war
+*.class
+application.pid
+.mtj.tmp/
+*.zip
 
+target/
+*.war
+*.jar
+*.ear
 # idea ignore
-.idea/
+.idea
 *.ipr
 *.iml
-*.iws
- 
+*.iws 
 # logs #
 logs
  
