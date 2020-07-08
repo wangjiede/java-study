@@ -1774,14 +1774,14 @@ If you want to take complete control of Spring MVC, you can add your own `@Confi
     </mvc:interceptors>
 ```
 
-**==编写一个配置类（@Configuration），是WebMvcConfigurerAdapter类型；不能标注@EnableWebMvc==**;
+**==编写一个配置类（@Configuration），实现WebMvcConfigurer；不能标注@EnableWebMvc==**;
 
 既保留了所有的自动配置，也能用我们扩展的配置；
 
 ```java
 //使用WebMvcConfigurerAdapter可以来扩展SpringMVC的功能
 @Configuration
-public class MyMvcConfig extends WebMvcConfigurerAdapter {
+public class MyMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
@@ -3612,6 +3612,47 @@ public class DruidConfig {
 
 ```
 
+```properties
+新版本直接在application中配置
+spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/test
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      #   配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filter:
+        - stat
+        - wall
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1 FROM DUAL
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      use-global-data-source-stat: true
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
+# WebStatFilter配置，说明请参考Druid Wiki，配置_配置WebStatFilter
+      web-stat-filter:
+        enabled: true
+# StatViewServlet配置，说明请参考Druid Wiki，配置_StatViewServlet配置
+      stat-view-servlet:
+        enabled: true
+        login-username: root
+        login-password: root
+        allow: 127.0.0.1
+        deny: 127.0.0.1
+        reset-enable: false
+```
+
 ## 3、整合MyBatis
 
 ```xml
@@ -4150,13 +4191,114 @@ public class HelloServiceAutoConfiguration {
 
 ```
 
-# 更多SpringBoot整合示例
+# 九、缓存
 
-https://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples
+## 一、缓存中重要概念
 
+| **Cache**          | 缓存接口，定义缓存操作。实现有:RedisCache、EhCacheCache、ConcurrentMapCache等 |
+| ------------------ | ------------------------------------------------------------ |
+| **CacheManager**   | **缓存管理器，管理各种缓存(Cache)组件**                      |
+| **@Cacheable**     | **主要针对方法配置，能够根据方法的请求参数对其结果进行缓存** |
+| **@CacheEvict**    | **清空缓存**                                                 |
+| **@CachePut**      | **保证方法被调用，又希望结果被缓存并跟新。**                 |
+| **@EnableCaching** | **开启基于注解的缓存**                                       |
+| **keyGenerator**   | **缓存数据时key生成策略**                                    |
+| **serialize**      | **缓存数据时value序列化策略**                                |
 
+## 二、@Cacheable/@CachePut/@CacheEvict参数
 
+| 参数                            | 说明                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| cacheNames/value                | 指定缓存组件的名字;将方法的返回结果放在哪个缓存中，是数组的方式，可以指定多个缓存； |
+| key                             | 缓存数据使用的key；可以用它来指定。默认是使用方法参数的值    |
+| keyGenerator                    | key的生成器；可以自己指定key的生成器的组件id；key/keyGenerator：二选一使用; |
+| cacheManager                    | 指定缓存管理器；或者cacheResolver指定获取解析器              |
+| condition                       | 指定符合条件的情况下才缓存；如：condition = "#id>0"(id值大于0)；condition = "#a0>1"：第一个参数的值>1的时候才进行缓存 |
+| unless                          | 否定缓存；满足条件情况下，方法的返回值就不会被缓存；可以获取到结果进行判断，如：<br />unless = "#result == null" *              <br />unless = "#a0==2":如果第一个参数的值是2，结果不缓存； |
+| sync                            | 是否使用异步模式，不支持返回值                               |
+| allEntries(`@CacheEvict`)       | 是否清空所有缓存内容，缺省为 false，如果指 定为 true，则方法调用后将立即清空所有缓存 |
+| beforeInvocation(`@CacheEvict`) | 是否在方法执行前就清空，缺省为 false，如果 指定为 true，则在方法还没有执行的时候就清 空缓存，缺省情况下，如果方法执行抛出异常， 则不会清空缓存 |
 
+## @Cacheable运行流程
+
+**主要针对方法配置，能够根据方法的请求参数对其结果进行缓存**
+
+运行流程：
+
+```java
+*   1、方法运行之前，先去查询Cache（缓存组件），按照cacheNames指定的名字获取；
+*      （CacheManager先获取相应的缓存），第一次获取缓存如果没有Cache组件会自动创建。
+*   2、去Cache中查找缓存的内容，使用一个key，默认就是方法的参数；
+*      key是按照某种策略生成的；默认是使用keyGenerator生成的，默认使用SimpleKeyGenerator生成key；
+*          SimpleKeyGenerator生成key的默认策略；
+*                  如果没有参数；key=new SimpleKey()；
+*                  如果有一个参数：key=参数的值
+*                  如果有多个参数：key=new SimpleKey(params)；
+*   3、没有查到缓存就调用目标方法；
+*   4、将目标方法返回的结果，放进缓存中
+```
+
+总结：@Cacheable标注的方法执行之前先来检查缓存中有没有这个数据，默认按照参数的值作为key去查询缓存， 如果没有就运行方法并将结果放入缓存；以后再来调用就可以直接使用缓存中的数据；
+
+核心：
+
+1）、使用`CacheManager`按照名字得到`Cache`组件
+
+2）、key使用keyGenerator生成的，默认是SimpleKeyGenerator
+
+## 自定义缓存key生成器
+
+```java
+@Configuration
+public class MyCacheConfig {
+    @Bean("myKeyGenerator")
+    public KeyGenerator keyGenerator(){
+        return new KeyGenerator(){
+
+            @Override
+            public Object generate(Object target, Method method, Object... params) {
+                return method.getName()+"["+ Arrays.asList(params).toString()+"]";
+            }
+        };
+    }
+}
+```
+
+## 四、整合redis实现缓存
+
+1、引入spring-boot-starter-data-redis
+
+2、 application.yml配置redis连接地址
+
+3、测试使用缓存
+
+自定义redis序列化规则：
+
+```java
+@Bean
+public RedisTemplate<Object, Employee> empRedisTemplate(
+        RedisConnectionFactory redisConnectionFactory)
+        throws UnknownHostException {
+    RedisTemplate<Object, Employee> template = new RedisTemplate<Object, Employee>();
+    template.setConnectionFactory(redisConnectionFactory);
+    Jackson2JsonRedisSerializer<Employee> ser = new Jackson2JsonRedisSerializer<Employee>(Employee.class);
+    template.setDefaultSerializer(ser);
+    return template;
+}
+```
+
+自定义CacheManager:
+
+```java
+@Bean
+public RedisCacheManager employeeCacheManager(RedisTemplate<Object, Employee> empRedisTemplate){
+    RedisCacheManager cacheManager = new RedisCacheManager(empRedisTemplate);
+    //key多了一个前缀
+    //使用前缀，默认会将CacheName作为key的前缀
+    cacheManager.setUsePrefix(true);
+    return cacheManager;
+}
+```
 
 
 
