@@ -680,7 +680,7 @@ org.springframework.web.HttpSessionRequiredException:Session attribute 'user' re
     	推荐使用 FormattingConversionServiceFactoryBean
     -->
     <bean id="conversionService"
-          class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+       class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
       <property name="converters">
         <set>
           <ref bean="employeeConverter"/>
@@ -725,7 +725,7 @@ org.springframework.web.HttpSessionRequiredException:Session attribute 'user' re
   ```java
   @InitBinder
   public void initBinder(WebDataBinder binder){
-    //不自定绑定对象中的的username属性
+    //不自动绑定对象中的的username属性
     binder.setDisallowedFields("username");
   }
   ```
@@ -1054,3 +1054,4 @@ SpringMVC通过HandlerExceptionResolver处理程序的异常，包括Controller�
 - SpringMVC效率比Struts2高，SpringMVC是基于方法设计，而Struts2是基于类，每发一次请求都会实例化一个类。
 - SpringMVC使用更加简洁，开发效率比Struts2高，支持JSR303等。
 - Struts2的OGNL表达式使页面的开发效率相比SpringMVC要高。
+

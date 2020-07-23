@@ -554,7 +554,7 @@ Sql中参数位置支持的属性：javaType、jdbcType、mode、numericScale、
    
    	<!--SpringMVC只是控制网站跳转逻辑  -->
    	<!-- 只扫描控制器 -->
-   	<context:component-scan base-package="com.atguigu.mybatis" use-default-filters="false">
+   	<context:component-scan base-package="com.mybatis" use-default-filters="false">
    		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
    	</context:component-scan>
    	
@@ -610,7 +610,7 @@ Sql中参数位置支持的属性：javaType、jdbcType、mode、numericScale、
    		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
    
    	<!-- Spring希望管理所有的业务逻辑组件，等。。。 -->
-   	<context:component-scan base-package="com.atguigu.mybatis">
+   	<context:component-scan base-package="com.mybatis">
    		<context:exclude-filter type="annotation"
    			expression="org.springframework.stereotype.Controller" />
    	</context:component-scan>
@@ -765,7 +765,7 @@ MyBatis Generator：简称MBG，是一个专门为Mybatis使用者定制的代�
          </sqlMapGenerator>
      
      	<!-- javaClientGenerator:指定mapper接口所在的位置 -->
-         <javaClientGenerator type="XMLMAPPER" targetPackage="com.atguigu.mybatis.dao"  
+         <javaClientGenerator type="XMLMAPPER" targetPackage="com.mybatis.dao"  
          	targetProject=".\src">
            <property name="enableSubPackages" value="true" />
          </javaClientGenerator>

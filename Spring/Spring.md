@@ -424,7 +424,7 @@ XML中Id值说明：在 IOC 容器中必须是唯一的，若 id 没有指定，
   - 代码混乱：与原有业务不相关代码无关。
   - 代码分散：为了满足单一需求，在多个模块(方法)里面多次重复相同代码，如果需求发生变化，所有地方都需要改动。
 
-- 横向切面：在不原有业务逻辑的情况下，从侧面切入，执行其他功能代码，可以使用动态代理方式解决。
+- 横向切面：在不改变原有业务逻辑的情况下，从侧面切入，执行其他功能代码，可以使用动态代理方式解决。
 
 ### 简介
 
@@ -558,13 +558,11 @@ XML中Id值说明：在 IOC 容器中必须是唯一的，若 id 没有指定，
   ```xml
   <aop:config>
     <!-- 配置切面及通知 -->
-    <aop:aspect ref="loggingAspect" order="2">
-    </aop:aspect>	
-    <aop:aspect ref="vlidationAspect" order="1">
-    </aop:aspect>
+    <aop:aspect ref="loggingAspect" order="2"></aop:aspect>	
+    <aop:aspect ref="vlidationAspect" order="1"></aop:aspect>
   </aop:config>
   ```
-
+  
 - 声明切入点：使用\<aop:pointcut> ，如：
 
   ```xml
@@ -619,7 +617,7 @@ XML中Id值说明：在 IOC 容器中必须是唯一的，若 id 没有指定，
 </aop:config>
 ```
 
-- @Transactional ：标准需要使用事务的方法，方法必须是public修改,需要在配置文件中增加，事务处理器名称默认transactionManager，可以不写
+- @Transactional ：标注需要使用事务的方法，方法必须是public修饰,需要在配置文件中增加，事务处理器名称默认transactionManager，可以不写
 
   ```xml
   <tx:annotation-driven transaction-manager="transactionManager"/>
@@ -634,7 +632,7 @@ XML中Id值说明：在 IOC 容器中必须是唯一的，若 id 没有指定，
 | Propagation.SUPPORTS      | 如果有事务在运行，当前方法就在这个事务内运行，否则它可以不运行在事务中 |
 | Propagation.NOT_SUPPORTED | 当前方法不运行在事务中，如果有运行的事务将它挂起             |
 | Propagation.MANDATORY     | 当前方法必须运行在事务内部，如果没有正在运行的事务就，就抛出异常 |
-| Propagation.NEVER         | 当前方法不运行在事务内部，如果有正在运行的事务就，就抛出异常 |
+| Propagation.NEVER         | 当前方法不运行在事务内部，如果有正在运行的事务就抛出异常     |
 | Propagation.NESTED        | 如果有事务在运行，当前的方法就应该在这个事务的嵌套事务中运行，否者就启动一个新事务，并在新事务内运行。 |
 
 ### 事务隔离级别
@@ -900,7 +898,7 @@ XML中Id值说明：在 IOC 容器中必须是唯一的，若 id 没有指定，
   - required属性：指定该属性是否必须被装配。
   - @Primary注解：让Spring进行自动装配的时候，默认使用首选的bean，也可以继续使用@Qualifier指定需要装配的bean的名字
   - 放在方法上：@Bean标注的方法，方法参数值从容器中获取，可以不写@Autowired
-  - 方法构造方法上：如果组件只有一个有参构造器，这个有参构造器的@Autowired可以省略，参数位置的组件还是可以自动从容器中获取。
+  - 放在构造方法上：如果组件只有一个有参构造器，这个有参构造器的@Autowired可以省略，参数位置的组件还是可以自动从容器中获取。
 
 - java规范注解
 
