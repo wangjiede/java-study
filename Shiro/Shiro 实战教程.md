@@ -1171,9 +1171,9 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for t_pers
+-- Table structure for t_perms
 -- ----------------------------
-DROP TABLE IF EXISTS `t_pers`;
+DROP TABLE IF EXISTS `t_perms`;
 CREATE TABLE `t_pers` (
   `id` int(6) NOT NULL AUTO_INCREMENT,
   `name` varchar(80) DEFAULT NULL,
