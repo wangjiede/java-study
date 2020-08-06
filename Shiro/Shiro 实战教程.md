@@ -437,7 +437,7 @@ public class TestAuthenticatorCusttomerRealm {
 
 ```java
 public class CustomerRealm extends AuthorizingRealm {
-    //认证方法
+    //授权方法
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
         String primaryPrincipal = (String) principals.getPrimaryPrincipal();
@@ -454,7 +454,7 @@ public class CustomerRealm extends AuthorizingRealm {
         return simpleAuthorizationInfo;
     }
 
-    //授权方法
+    //认证方法
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         String principal = (String) token.getPrincipal();
