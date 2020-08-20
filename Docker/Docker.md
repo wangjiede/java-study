@@ -200,6 +200,7 @@ Docker-Server接收到Docker-Client的指令，就会执行这个命令!
 docker version			#查看docker版本信息
 docker info					#显示docker的系统信息，包括镜像和容器的数量
 docker 命令 --help	#帮助命令
+docker stats 				#查看cpu状态
 ```
 
 帮助文档地址：https://docs.docker.com/engine/reference/commandline
@@ -266,4 +267,282 @@ docker rmi -f $(docker images -aq) #删除全部的镜像
 ```
 
 ## 容器命令
+
+**说明：有了镜像才可以创建容器并运行，下载一个centos来测试学习**
+
+```shell
+docker pull centos
+```
+
+**新建容器并启动**
+
+```shell
+docker run [可选参数] image
+#参数说明
+--name="name"  #指定容器名字
+-d						 #以后台方式运行
+-it						 #使用交互方式运行，进入容器查看内容
+-p						 #指定容器端口，如：
+		-p ip:主机端口:容器端口
+		-p 主机端口:容器端口
+		-p 容器端口
+		容器端口(直接指定容器端口)
+-P						 #随机指定容器端口
+--rm					 #用完就删除容器和镜像
+#启动并进入容器
+Just  ~  docker run -it centos /bin/bash   
+[root@963f615aa301 /]# ls
+bin  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+```
+
+**退出容器**
+
+```shell
+exit			#直接停止容器并退出
+Ctrl+P+Q	#容器不停止，并退出容器
+```
+
+**列出所有运行的容器**
+
+```shell
+
+docker ps 
+				#列出当前正在运行的容器
+	-a		#列出所有当前正在运行的容器+历史运行过的容器
+	-n=?	#显示最近创建的容器，？显示几个
+	-q		#只显示容器的编号
+```
+
+**删除命令**
+
+```shell
+docker rm 容器ID								#删除指定容器，不能删除正在运行的容器，如果要强制删除，使用-f参数
+docker rm -f $(docker ps -aq)	 #删除所有的容器
+docker ps -a -q | xargs docker rm			#同样是删除所有容器
+```
+
+**启动和停止容器的操作**
+
+```shell
+docker start 容器ID					#启动容器
+docker restart 容器ID				#重启容器
+docker stop 容器ID					#停止容器
+docker kill 容器ID					#强制停止容器
+```
+
+## 常用其他命令
+
+**后台启动容器**
+
+```shell
+docker run -d 镜像名
+#问题：使用docker ps时，发现通过镜像名启动的容器停止了
+#常见的坑：docker容器使用后台运行，就必须要有一个前台进程，docker发现没有应用，就会自动停止
+#如启动nginx容器，容器启动后发现自己没有提供服务，就会立刻停止，就没有程序了
+```
+
+**查看日志**
+
+```shell
+docker logs -f -t [--tail 显示条数] 容器ID
+#由于没有日志，自己写一段shell脚本产生日志
+docker run -d centos /bin/sh -c "while true;do echo ceshiyixia;sleep 1;done;"
+#使用“docker logs -f -t --tail [显示条数] 容器ID”显示日志
+```
+
+**查看容器中的进程信息**
+
+```shell
+docker top 容器ID
+```
+
+**查看镜像元数据**
+
+```shell
+docker inspect 容器ID\镜像ID
+```
+
+**进入当前正在运行的容器**
+
+```shell
+#我们通常容器都是后台方式运行的，如需要进入容器修改一些配置等。。。
+#进入容器方式一
+docker exec -it 容器ID bashShell
+#进入容器方式二
+docker attach 容器ID
+
+#两种方式的区别
+#docker exec			#进入容器后开启新的终端，可以在里面操作(常用)
+#docker attach 		#进入容器正在运行的终端，不会启动新的进程
+```
+
+**从容器中拷贝文件到主机**
+
+```shell
+docker cp 容器ID:容器内路径 目的的主机路径
+#目前该命令是通过手动的方式copy，未来我们使用-v 卷的技术，可以实现指定目录的数据同步
+```
+
+## 命令小结
+
+![image-20200820213050386](images/image-20200820213050386.png)
+
+```shell
+`attach` 	Attach to a running container 									#当前shell下attach连接指定运行镜像
+`build` 	Build an image from a Dockerfile 								#通过Dockerfile定制镜像
+`commit` 	Create a new image from a container changes 		#提交当前容器为新的镜像
+`cp` 			Copy files/folders from a container to a HOSTDIR or to STDOUT #从容器中拷贝指定文件或者目录到宿主机中
+`create` 	Create a new container 													#创建一个新的容器，同run 但不启动容器
+`diff` 		Inspect changes on a container filesystem 			#查看docker容器变化
+`events` 	Get real time events from the server						#从docker服务获取容器实时事件
+`exec` 		Run a command in a running container						#在已存在的容器上运行命令
+`export` 	Export a containers filesystem as a tar archive #导出容器的内容流作为一个tar归档文件(对应import)
+`history` Show the history of an image 										#展示一个镜像形成历史
+`images`  List images  																		#列出系统当前镜像
+`import`  Import the contents from a tarball to create a filesystem image  #从tar包中的内容创建一个新的文件系统映像(对应export)
+`info`    Display system-wide information  								#显示系统相关信息
+`inspect` Return low-level information on a container or image  #查看容器详细信息
+`kill`    Kill a running container  											#kill指定docker容器
+`load`    Load an image from a tar archive or STDIN  			#从一个tar包中加载一个镜像(对应save)
+`login`   Register or log in to a Docker registry					#注册或者登陆一个docker源服务器
+`logout`  Log out from a Docker registry  								#从当前Docker registry退出
+`logs`    Fetch the logs of a container  									#输出当前容器日志信息
+`pause`   Pause all processes within a container					#暂停容器
+`port`    List port mappings or a specific mapping for the CONTAINER  #查看映射端口对应的容器内部源端口
+`ps`    	List containers  																#列出容器列表
+`pull`    Pull an image or a repository from a registry #从docker镜像源服务器拉取指定镜像或者库镜像
+`push`    Push an image or a repository to a registry  	#推送指定镜像或者库镜像至docker源服务器
+`rename`  Rename a container  														#重命名容器
+`restart` Restart a running container  										#重启运行的容器
+`rm`    	Remove one or more containers  									#移除一个或者多个容器
+`rmi`    	Remove one or more images  #移除一个或多个镜像(无容器使用该镜像才可以删除，否则需要删除相关容器才可以继续或者-f强制删除)
+`run`    	Run a command in a new container  							#创建一个新的容器并运行一个命令
+`save`    Save an image(s) to a tar archive								#保存一个镜像为一个tar包(对应load)
+`search`  Search the Docker Hub for images  							#在docker hub中搜索镜像
+`start`   Start one or more stopped containers						#启动容器
+`stats`   Display a live stream of container(s) resource usage statistics  #统计容器使用资源
+`stop`    Stop a running container  											#停止容器
+`tag`     Tag an image into a repository  								#给源中镜像打标签
+`top`     Display the running processes of a container 		#查看容器中运行的进程信息
+`unpause` Unpause all processes within a container  			#取消暂停容器
+`version` Show the Docker version information							#查看容器版本号
+`wait`    Block until a container stops, then print its exit code  #截取容器停止时的退出状态值
+```
+
+## 实战
+
+> 安装nginx
+
+```shell
+#通过docker search命令查找nginx，建议到docker hub查找镜像，信息比较全面
+docker search nginx
+#通过docker pull拉取镜像
+docker pull nginx
+#通过docker run命令运行nginx
+docker run -d --name nginx01 -p 3344:80 nginx
+#通过docker exec命令进入容器
+docker exec -it nginx01 /bin/bash
+```
+
+> 安装tomcat
+
+```shell
+#通过docker search命令查找tomcat，建议到docker hub查找镜像，信息比较全面
+docker search tomcat
+#通过docker pull拉取镜像
+docker pull tomcat:9.0
+#通过docker run命令运行nginx
+docker run -d --name tomcat01 -p 3355:8080 tomcat:9.0
+#通过docker exec命令进入容器
+docker exec -it tomcat01 /bin/bash
+#发现问题
+#1.linux命令少了(没有ll命令)
+#2.没有webapps
+#阿里云镜像的原因，默认是最小的镜像，所有不必要的都提出到，保证最小可运行环境。(可以将webapps.dist目录下所有东西拷贝到webapps下)
+```
+
+> 部署ES+Kibana(?)
+
+```shell
+#es 暴露的端口很多！十分耗内存、数据一般需要放置到安全目录！(挂载)
+#启动命令
+#--net somenetwork？ 网络配置,后面docker网络讲，暂时不用
+docker run -d --name elasticsearch [--net somenetwork] -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.6.2
+#启动后linux变得非常卡,通过docker stats查看docker状态，发现es将内存占满！！！！
+#为了解决内存占用问题，可以通过-e(修改环境配置) 增加内存的限制
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms64m -Xmx1024m" elasticsearch:7.6.2
+```
+
+# Docker可视化
+
+> Portainer (先用这个)
+
+**什么是Portainer？**
+
+docker图形化界面管理工具，提供一个后台面板供我们使用！
+
+```shell
+docker run -d -p 8088:9000 --restart=always -v /var/run/docker.sock:/var/run/docker.sock --privileged=true portainer/portainer
+#访问测试：外网地址：8088
+```
+
+> Rancher (CI/CD再用)
+
+# Docker镜像讲解
+
+## 镜像定义
+
+镜像是一种轻量级，可执行的独立软件包，用来打包软件运行环境和基于运行环境开发的软件，它包含某个软件运行所需的所有内容，包括代码、运行时、库、环境变量和配置文件。
+
+所有的应用直接打包docker镜像，运维直接运行起来。
+
+如何得到镜像:
+
+- 从远程仓库下载
+- 别人拷贝给你
+- 自己制作一个镜像DockerFile
+
+## 加载原理
+
+> UnionFS(联合文件系统)
+
+UnionFS(联合文件系统)：Union(联合)文件系统(UnionFS)是一种分层、轻量级并且高性能的文件系统，它支持对文件系统的修改作为一次提交来一层层叠加，同时可以将不同目录挂载到同一个虚拟文件系统下。UnionFS是Docker镜像的基础，Docker可通过分层来进行继承，基于基础镜像(没有父镜像)，可以制作各种具体的应用镜像。
+
+特性：一次同时加载多个文件系统，但从外面看起来，只能看到一个文件系统，联合加载会把各层文件系统叠加起来，这样最终的文件系统会包含所有底层的文件和目录。
+
+> Docker镜像加载原理
+
+Docker的镜像实际上是由一层层文件系统组成，这种层级的文件系统UnionFS。
+
+bootfs(boot file system)主要包含bootloder和kernel，bootloader主要引导加载kernel，Linux刚启动时会加载bootfs文件系统，在Docker镜像最底层是bootfs。这一层与我们典型的Linux/Unix系统是一样的，包含boot加载器和内核。当boot加载完成之后整个内核都在内存中了，此时内存的使用权已有bootfs转交给内核，此时系统也会卸载bootfs
+
+rootfs(root file system)在bootfs之上。包含的就是典型Linux系统中的/dev、/proc、/bin、/etc等标准目录和文件。rootfs就是各种不同操作系统发行版，比如Ubuntu、Centos等。
+
+![image-20200820234421157](images/image-20200820234421157.png)
+
+平时我们安装进虚拟机的centos都是好几个G，为什么Docker这里才200M？
+
+对于一个精简的OS，rootfs可以很小，只需要包含最基本的命令，工具和程序库就可以了，因为底层直接用Host的Kernel，自己只需要提供rootfs就可以了。由此可见对于不同的Linux发行版，bootfs基本一样，rootfs会有差别，因此不同的发行版可以共用bootfs。
+
+## 分层理解
+
+Docker镜像采用分层结构目的是为了资源共享。
+
+> **理解**
+
+![image-20200821000141251](images/image-20200821000141251.png)
+
+![image-20200821000242797](images/image-20200821000242797.png)
+
+![image-20200821000355272](images/image-20200821000355272.png)
+
+![image-20200821000450944](images/image-20200821000450944.png)
+
+> 特点
+
+Docker镜像都是只读的，当容器启动时，一个新的可写层被加载到镜像的顶部！
+
+这就是我们通常说的容器层，容器之下的都叫镜像层。
+
+## Commit镜像
 
