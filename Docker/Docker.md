@@ -807,7 +807,46 @@ CMD ["ls"，"-a"],如果直接进入容器，那么会默认执行ls -a，如果
 docker run -it 镜像id 追加命令,如：docker run -it 镜像id -l 最终执行的完整命令是：ls -al
 ```
 
+> 总结：DockerFile中很多命令都是十分相似，我们需要了解他们的区别，最好的学习方式就是对比他们然后测试效果，观察不同点！
 
+## 实战测试：Tomcat镜像
+
+1. 准备镜像压缩包：tomcat、jdk压缩包
+
+2. 编写DockerFile文件，官方命令DockerFile，在build的时候，不需要-f指定文件，会自动寻找DockerFile文件
+
+   ```shell
+   FROM centos
+   MAINTAINER Just<17780484850@163.com>
+   COPY README.txt /usr/local/README.txt
+   
+   
+   ADD jdk-8u261-linux-x64.tar.gz  /usr/local/
+   ADD apache-tomcat-9.0.37.tar.gz /usr/local/
+   
+   RUN yum -y install vim
+   ENV MYPATH /usr/local
+   WORKDIR $MYPATH
+   
+   ENV JAVA_HOME  /usr/local/jdk1.8.0_261
+   ENV CLASS_PATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+   
+   ENV CATALINA_HOME /usr/local/apache-tomcat-9.0.37
+   ENV CATALINA_BASH /usr/local/apache-tomcat-9.0.37
+   ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/lib:$CATALINA_HOME/bin
+   
+   EXPOSE 8080
+   
+   CMD /usr/local/apache-tomcat-9.0.37/bin/startup.sh && tail -F  /usr/local/apache-tomcat-9.0.37/bin/logs/catalina.out
+   ```
+
+3. 构建镜像
+
+   ```shell
+   docker build [-f DockerFile] -t diytomcat .
+   ```
+
+   
 
 # Docker网络
 
