@@ -689,4 +689,125 @@ docker run -d --name mysql02 -p 3307:3306 --volumes-from mysql01 mysql:5.7
 
 # DockerFile
 
+## DockerFile介绍
+
+dockerFile是用来构建docker镜像文件，命令参数脚本！
+
+构建步骤：
+
+1. 编写一个dockerfile文件
+2. docker build 构建成为一个镜像
+3. docker run 运行镜像
+4. docker push 发布镜像(DockerHub、阿里云镜像仓库)
+
+Docker Hub中所有的镜像都是一个DockerFile文件，如centos7：
+
+![image-20200901094754729](images/image-20200901094754729.png)
+
+很多官方镜像只是一个基础镜像，很多功能没有，我们通常会自己搭建自己的镜像！
+
+## DockerFile构建过程
+
+**基础知识：**
+
+1. 每个保留关键字(指令)都必须是大写字母
+
+2. 从上到下执行命令
+
+3. #表示注释
+
+4. 每一个指定都会创建提交一个镜像层，并提交！
+
+   ![image-20200901095956438](images/image-20200901095956438.png)
+
+DockerFile是面向开发的，我们以后要发布项目，做镜像，就需要编写dockerfile文件，这个文件十分简单！
+
+Docker镜像逐渐成为了企业交付的标准，必须要掌握！
+
+**步骤：**开发、部署、运维
+
+DockerFile：构建文件，定义了一切步骤，源代码！
+
+DockerImages：通过DockerFile构建生产的镜像，就是我们最终要发布和运行的产品！
+
+Docker容器：容器就是镜像运行起来提供服务！
+
+## DcokerFile指令
+
+![image-20200901100909427](images/image-20200901100909427.png)
+
+```shell
+FROM					#基础镜像，一切从这里开始构建
+MAINTAINER				#镜像是谁写的，姓名+邮箱
+RUN						#镜像构建时需要运行的命令
+ADD						#比如需要添加本地tomcat，需要将tomcat打成压缩包，这个压缩包就是要添加的文件！
+WORKDIR					#镜像的工作目录
+VOLUME					#挂载的目录位置
+EXPOSE					#暴露端口配置，和-p一样
+CMD						#指定容器启动时要运行的命令,只有最后一个命令会生效，可被替代
+ENTRYPOINT				#指定容器启动时要运行的命令，可以追加命令
+ONBUILD					#当构建一个被继承DockerFile，这个时候就会运行ONBUILD指定。触发指令
+COPY					#类似ADD命令，将文件拷贝到镜像中
+ENV						#构建时，设置环境变量
+```
+
+## 实战测试
+
+Docker Hub中99%镜像都是从这个基础镜像过来的FROM scratch，然后配置需要的软件和配置来进行构建
+
+> 创建一个自己的centos
+
+1. 创建并编辑DockerFile
+
+   ```shell
+   FROM centos
+   MAINTAINER Just<17780484850@163.com>
+   ENV MYPATH C:\Users\Administrator
+   WORKDIR $MYPATH
+   RUN yum -y install vim
+   RUN yum -y install net-tools
+   EXPOSE 80
+   CMD echo $MYPATH
+   CMD echo "---------end-----------"
+   CMD /bin/bash
+   ```
+
+2. 通过DockerFile构建镜像
+
+   ```shell
+   docker build -f mydockerfile -t mycentos:1.0 .
+   #构建完成
+   Successfully built d9dcbcd7aaad
+   Successfully tagged mycentos:1.0
+   ```
+
+3. 运行镜像，并验证
+
+   ```shell
+   docker run -it mycentos:1.0
+   ```
+
+![image-20200901112835498](images/image-20200901112835498.png)
+
+可以通过docker history 镜像ID 查看该镜像构建步骤，拿到镜像后，可以查看研究一下别人怎么做的。
+
+![image-20200901113518551](images/image-20200901113518551.png)
+
+> CMD 和 ENTRYPOINT	区别
+
+```shell
+CMD						#指定容器启动时要运行的命令,只有最后一个命令会生效，可被替代
+#比如在dockerFile中最后的CMD命令是
+CMD ["ls"，"-a"],如果直接进入容器，那么会默认执行ls -a，如果想要修改执行命令，可以通过
+docker run -it 镜像id 完整命令，如：docker run -it 镜像id -l
+
+ENTRYPOINT				#指定容器启动时要运行的命令，可以追加命令
+#比如在dockerFile中最后的CMD命令是
+CMD ["ls"，"-a"],如果直接进入容器，那么会默认执行ls -a，如果想要修改执行命令，可以通过
+docker run -it 镜像id 追加命令,如：docker run -it 镜像id -l 最终执行的完整命令是：ls -al
+```
+
+
+
 # Docker网络
+
