@@ -813,7 +813,7 @@ docker run -it 镜像id 追加命令,如：docker run -it 镜像id -l 最终执�
 
 1. 准备镜像压缩包：tomcat、jdk压缩包
 
-2. 编写DockerFile文件，官方命令DockerFile，在build的时候，不需要-f指定文件，会自动寻找DockerFile文件
+2. 编写DockerFile文件，官方命令`DockerFile`，在build的时候，不需要-f指定文件，会自动寻找DockerFile文件
 
    ```shell
    FROM centos
