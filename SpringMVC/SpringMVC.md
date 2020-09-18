@@ -92,13 +92,13 @@ public String testParamsAndHeaders() {
 
 - params：指定请求参数
 
-  – param1:􏰧􏲉􏰗􏰘􏳄􏱦􏱵􏱊􏲠􏰂表示请求必须包含名为param1􏰒􏰗􏰘􏰙􏰚的参数
+  – param1:表示请求必须包含名为param1的参数
 
-  – !param1:􏰧􏲉􏰗􏰘􏰋􏲶􏱵􏱊􏲠􏰂表示请求中不能包含名param1的参数􏰒􏰗􏰘􏰙􏰚
+  – !param1:表示请求中不能包含名param1的参数
 
-  – param1!=value1:表示请求中名为􏰧􏲉􏰗􏰘􏱵􏱊􏲠􏰂param1􏰒􏰗􏰘􏰙􏰚􏱐􏱅􏱷􏰀 􏰋的参数􏲶􏰂值不能为 value1
+  – param1!=value1:表示请求中名为param1的参数值不能为 value1
 
-  – {“param1=value1”,“param2”}:􏰗􏰘􏳄􏱦􏱵􏱊􏲠􏰂表示请求中param1􏰣参数值必须为value1,并且还要包含param2参数
+  – {“param1=value1”,“param2”}:表示请求中param1参数值必须为value1,并且还要包含param2参数
 
 - headers：指定请求头，格式与params注解格式类似
 
@@ -560,7 +560,7 @@ org.springframework.web.HttpSessionRequiredException:Session attribute 'user' re
     - htmlEscape属性：是否对表单值的HTML特殊字符进行转换，默认值为true
     - cssClass属性：表单组件对象的css样式类名
     - cssErrorClass属性：表单组件的数据存储错误时，采取的css样式
-  - \<form:input>􏰳、\<form:password>􏰳、\<form:hidden>􏰳、\<form:textarea>:对应Html表单的text􏰳、password、􏰳hidden􏰳、textarea
+  - \<form:input>、\<form:password>、\<form:hidden>、\<form:textarea>:对应Html表单的text、password、hidden、textarea
   - \<form:radiobutton>：单选框组件标签，当表单bean的属性值和value值相等时，单选框被选中。
   - \<form:radiobuttons>：单选框组标签，用于构造多个单选框
     - items属性：可以是一个List、Map、或String[]
@@ -950,7 +950,7 @@ SessionLocaleResolver&LocaleChangeInterceptor
 
 ## 文件上传
 
-- Spring MVC为文件上传提供了直接的支持，这种支持是通过既插既用的MultipartResolver实现的，Spring用commons-fileupload+commons-io 􏰼􏱟􏱠􏰽􏰽􏲛􏰍􏲉􏴲􏳺􏰯􏲷􏲸实现了MultipartResolver实现类：CommonsMultipartResolver
+- Spring MVC为文件上传提供了直接的支持，这种支持是通过既插既用的MultipartResolver实现的，Spring用commons-fileupload+commons-io 实现了MultipartResolver实现类：CommonsMultipartResolver
 
 - SpringMVC 上下文中默认没有装配MultipartResolver，因此默认情况下不能处理文件的上传工作，如果想要使用Spring 的文件上传功能，需要在上下文中配置MultipartResolver。
 
