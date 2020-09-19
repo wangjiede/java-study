@@ -846,7 +846,266 @@ docker run -it 镜像id 追加命令,如：docker run -it 镜像id -l 最终执�
    docker build [-f DockerFile] -t diytomcat .
    ```
 
-   
+4. 启动镜像
+
+   ```shell
+   docker run -d -p 9090:8080 --name mytomcat -v /home/just/tomcat/test:/usr/local/apache-tomcat-9.0.37/webapps/test -v /home/just/tomcat/tomcatlogs/:/usr/local/apache-tomcat-9.0.37/logs diytomcat
+   ```
+
+5. 进入挂载目录，创建项目目录，并创建web.xml
+
+   ```shell
+   cd /home/just/tomcat/test
+   mkdir WEB-INF
+   cd WEB-INF
+   vim web.xml
+   ```
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <web-app version="2.4" 
+       xmlns="http://java.sun.com/xml/ns/j2ee" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
+           http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+   </web-app>
+   ```
+
+6. 创建jsp文件，并直接访问
+
+   ```shell
+   cd /home/just/tomcat/test
+   vim index.jsp
+   ```
+
+   ```jsp
+   <html>
+   <head><title>Hello World</title></head>
+   <body>
+   Hello World!<br/>
+   <%
+   out.println("Your IP address is " + request.getRemoteAddr());
+   %>
+   </body>
+   </html>
+   ```
+
+## 发布镜像
+
+> DockerHub
+
+1. 在https://hub.docker.com/注册自己的账号
+
+2. 通过命令登录账号
+
+   ```shell
+   docker login
+   ```
+
+3. 登录完成后，通过命令提交镜像
+
+   ```shell
+   docker push mytomcat
+   #通过命令提交，提示
+   The push refers to repository [docker.io/wangjiede/nginx]
+   An image does not exist locally with the tag: wangjiede/nginx
+   #解决方法是给镜像重新起一个名字，然后在通过docker push提交
+   docker tag 4bb46517cac3 wangjiede/nginx:1.0
+   docker push wangjiede/nginx:1.0
+   ```
+
+> 阿里云镜像服务
+
+1. 登录阿里云
+
+2. 找到容器镜像服务，并创建命名空间
+
+   ![image-20200919104439358](images/image-20200919104439358.png)
+
+3. 创建镜像仓库
+
+   ![image-20200919104655157](images/image-20200919104655157.png)
+
+4. 点击仓库镜像，查看具体步骤
+
+   ![image-20200919104808284](images/image-20200919104808284.png)
+
+## 小结
+
+<img src="images/image-20200919104958751.png" alt="image-20200919104958751" style="zoom:50%;" />
 
 # Docker网络
+
+## 理解Docker0
+
+![image-20200919110043099](images/image-20200919110043099.png)
+
+三个网络
+
+```shell
+#问题：docker是如何处理容器网络访问的？
+docker run -d -P --name tomcat01 tomcat
+#查看tomcat容器内部网络地址 ip addr，发现容器启动时会得到一个eth0@if262的ip地址，是docker分配的！
+docker exec -it tomcat01 ip addr
+
+#思考：linux能不能ping通容器内部？
+如果是同一网段是可以ping通的。
+```
+
+> 原理
+
+1. 我们每启动一个docker容器，docker会给容器分配一个ip。只要服务器安装了docker，就会有一个网卡docker0，桥接模式，使用的技术是evth-pair技术！
+
+   再次测试 ip addr 
+
+   ![image-20200919111810150](images/image-20200919111810150.png)
+
+2. 再启动一个容器测试，发现又多可以对网卡
+
+   ![image-20200919112329210](images/image-20200919112329210.png)
+
+   ```shell
+   # 发现这个容器带来的网卡都是一对一对的。263连接264
+   # evth-pair技术就是一对的虚拟设备接口，都是成对出现，一段连接协议，一段彼此相连。
+   # 正因为有这个特性，evth-pair充当一个桥梁，连接各种虚拟网络设备
+   ```
+
+3. 测试tomcat01和tomcat02之间是否可以ping通？
+
+   ```shell
+   docker exec -it tomcat01 ping 172.17.0.3
+   # 结论：容器之间是可以相互ping通的，tomcat01与tomcat02是公用一个路由器：docker0
+   # 所有的容器不指定网络的情况下，都是docker0路由的，docker会给容器分配一个默认可用的ip
+   ```
+
+   ![image-20200919113035480](images/image-20200919113035480.png)
+
+**网络模型图：**
+
+<img src="images/image-20200919113449060.png" alt="image-20200919113449060" style="zoom:50%;" />
+
+> 小结：Docker使用的是linux的桥接，宿主机中是一个Docker容器的网桥docker0。docker中所有的网络接口都是虚拟的。虚拟的转发效率高！只要容器删除，对应的网桥就会被删除。
+
+<img src="images/image-20200919114043290.png" alt="image-20200919114043290" style="zoom:50%;" />
+
+## --link
+
+> 思考一个场景：我们编写了一个微服务，database_url=ip:端口，项目不重启，数据库ip变了，我们希望可以处理掉这个问题，是否可以使用名称来访问容器？
+
+```shell
+docker exec -it tomcat01 ping tomcat02
+# ping: tomcat02: Name or service not known
+# 如何解决？通过--link就可以解决
+docker run -d -P --name tomcat03 --link tomcat02 tomcat
+docker exec -it tomcat03 ping tomcat02
+# 那么反向可以ping通吗？tomcat02 ping tomcat03，答案是不能的
+```
+
+本质探究：--link就是在hosts文件中增加了一个172.17.0.3 tomcat02 cf0411d9ac8e。
+
+现在玩Docker已经不建议使用--link了，我们可以自定义网络，不使用docker0。
+
+docker0问题：不支持通过容器名访问！
+
+## 自定义网络
+
+```shell
+# 查看所有的docker网络
+docker network ls
+```
+
+![image-20200919120435319](images/image-20200919120435319.png)
+
+**网络模式**
+
+- bridge：桥接	docker(默认)
+- none：不配置网络
+- host：和宿主机共享网络
+- container：容器内网络连通(用得少！局限大)
+
+**测试**
+
+```shell
+# 不指定网络，默认就是docker0，也可以通过--net指定网络
+docker run -d -P --name tomcat01 tomcat
+docker run -d -P --name tomcat01 --net bridge tomcat
+# docker 特点：默认，域名不能访问，--link可以打通连接！
+# 创建自定义的网络
+--subnet 192.168.0.0/16   子网掩码
+docker network create --driver bridge --subnet 192.168.0.0/16 --gateway 192.168.0.1 mynet
+# 重新启动tomcat-net-01、tomcat-net-02服务并指定自定义网络，发现通过ip或者容器名称都是可以ping通	
+```
+
+## 网络连通
+
+网络原理图：
+
+<img src="images/image-20200919140958065.png" alt="image-20200919140958065" style="zoom:50%;" />
+
+命令：
+
+<img src="images/image-20200919135925572.png" alt="image-20200919135925572" style="zoom:50%;" />
+
+```shell
+# 测试打通tomcat01与mynet网络
+docker network connect mynet tomcat01
+# 连通之后，通过docker network inspect mynet查看网络，发现直接讲tomcat01添加到了当前的网络中，
+# 这就是官方说的一个容器2个ip地址
+# 再通过命令docker exec -it tomcat01 ping tomcat-net-01发现已经可以ping通了，而tomcat02还是无法ping通的
+```
+
+![image-20200919140549829](images/image-20200919140549829.png)
+
+结论：假如需要跨网络操作别人，就需要使用docker network connect 连通！
+
+## 实战：部署Redis集群
+
+模型：<img src="images/image-20200919141245255.png" alt="image-20200919141245255" style="zoom:50%;" />
+
+shell脚本：
+
+```shell
+# 创建网卡
+docker network create redis --subnet 172.38.0.0/16
+# 通过脚本创建6个redis配置
+for port in $(seq 1 6); \
+do \
+mkdir -p /mydata/redis/node-${port}/conf
+touch /mydata/redis/node-${port}/conf/redis.conf
+cat << EOF >/mydata/redis/node-${port}/conf/redis.conf
+port 6379
+bind 0.0.0.0
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-announce-ip 172.38.0.1${port}
+cluster-announce-port 6379
+cluster-announce-bus-port 16379
+appendonly yes
+EOF
+done
+# 依次启动6个redis容器
+docker run -p 6371:6379 -p 16371:16379 --name redis-1 -v /mydata/redis/node-1/data:/data -v /mydata/redis/node-1/conf/redis.conf:/etc/redis/redis.conf -d --net redis --ip 172.38.0.11 redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
+# 进入一个redis容器，并创建集群
+docker exec -it redis-1 /bin/sh
+redis-cli --cluster create 172.38.0.11:6379 172.38.0.12:6379 172.38.0.13:6379... --cluster-replices 1
+```
+
+## Docker打包springboot项目
+
+1. 构建springboot 项目
+2. 打包应用
+3. 编写Dockerfile文件
+4. 构建镜像
+5. 发布运行
+
+以后使用Docker发布项目，交个别人的就是一个Docker镜像。
+
+
+
+# Docker Compose
+
+# Docker Swarm
+
+# CI/CD之Jenkins
 
