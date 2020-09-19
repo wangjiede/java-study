@@ -1101,9 +1101,286 @@ redis-cli --cluster create 172.38.0.11:6379 172.38.0.12:6379 172.38.0.13:6379...
 
 以后使用Docker发布项目，交个别人的就是一个Docker镜像。
 
-
-
 # Docker Compose
+
+## 简介
+
+Compose 是用于定义和运行多容器 Docker 应用程序的工具。通过 Compose，您可以使用 YML 文件来配置应用程序需要的所有服务。然后，使用一个命令，就可以从 YML 文件配置中创建并启动所有服务。
+
+Compose 使用的三个步骤：
+
+- 使用 Dockerfile 定义应用程序的环境。
+- 使用 docker-compose.yml 定义构成应用程序的服务，这样它们可以在隔离环境中一起运行。
+- 最后，执行 docker-compose up 命令来启动并运行整个应用程序。
+
+作用：批量容器编排
+
+Compose重要概念
+
+- services：服务，其中包含各个容器(redis、mysql、web...)
+- project：项目，一组关联的容器。
+
+## 安装
+
+```shell
+# 1.下载docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# 2.目录授权
+sudo chmod +x /usr/local/bin/docker-compose
+# 3.创建软连接
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+# 4.验证
+docker-compose --version
+```
+
+## 使用
+
+1. 准备
+
+   ```shell
+   mkdir composetest && cd composetest
+   ```
+
+   ```python
+   #创建app.py文件
+   #composetest/app.py 文件代码
+   import time
+   
+   import redis
+   from flask import Flask
+   
+   app = Flask(__name__)
+   cache = redis.Redis(host='redis', port=6379)
+   
+   
+   def get_hit_count():
+       retries = 5
+       while True:
+           try:
+               return cache.incr('hits')
+           except redis.exceptions.ConnectionError as exc:
+               if retries == 0:
+                   raise exc
+               retries -= 1
+               time.sleep(0.5)
+   
+   
+   @app.route('/')
+   def hello():
+       count = get_hit_count()
+       return 'Hello World! I have been seen {} times.\n'.format(count)
+   ```
+
+   ```shell
+   # 创建requirements.txt ，内容
+   flask
+   redis
+   ```
+
+2. 创建Dockerfile文件
+
+   ```dockerfile
+   FROM python:3.7-alpine
+   WORKDIR /code
+   # 设置 flask 命令使用的环境变量。
+   ENV FLASK_APP app.py
+   ENV FLASK_RUN_HOST 0.0.0.0
+   # 安装 gcc
+   RUN apk add --no-cache gcc musl-dev linux-headers
+   COPY requirements.txt requirements.txt
+   RUN pip install -r requirements.txt
+   COPY . .
+   CMD ["flask", "run"]
+   ```
+
+3. 创建docker-compose.yml
+
+   ```yaml
+   # yaml 配置
+   version: '3'
+   services:
+     web:
+       build: .
+       ports:
+        - "5000:5000"
+     redis:
+       image: "redis:alpine"
+   ```
+
+4. 使用compose命令构建和运行引用
+
+   ```shell
+   docker-compose up [-d]
+   ```
+
+5. 停止
+
+   ```shell
+   docker-compose down || ctrl+c || docker-compose stop
+   ```
+
+**流程**
+
+1. 创建网络
+2. 执行docker-compose.yml文件
+3. 启动服务
+
+**Docker小结**
+
+1、docker镜像 run =>容器
+
+2、Dockerfile构建镜像(服务打包)
+
+3、docker-compose启动项目(编排、多个微服务/环境)
+
+4、Docker网络掌握
+
+## Yaml规则
+
+docker-compose.yml核心！！！3层
+
+```yaml
+# 第一层：版本
+version: "3.8"
+# 第二层：服务
+services:
+  redis:     #服务名称
+    image: redis:alpine			#镜像版本
+    ports:
+      - "6379"  #启动端口
+    networks:
+      - frontend		#网络
+    deploy:				#指定与服务的部署和运行有关的配置。只在 集群 模式下才会有用。
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  db:
+    image: postgres:9.4
+    volumes:		#挂载目录
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
+  vote:
+    image: dockersamples/examplevotingapp_vote:before
+    ports:
+      - "5000:80"
+    networks:
+      - frontend
+    depends_on:		#依赖服务
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+  result:
+    image: dockersamples/examplevotingapp_result:before
+    ports:
+      - "5001:80"
+    networks:
+      - backend
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: [APP=VOTING]
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints:
+          - "node.role==manager"
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    stop_grace_period: 1m30s
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints:
+          - "node.role==manager"
+# 第三层：网络、卷、全局规则；其他通用配置
+networks:
+  frontend:
+  backend:
+volumes:
+  db-data:
+configs: 
+```
+
+## 搭建wordpress博客
+
+1. 创建自己的工作目录
+
+   ```shell
+   mkdir my_workpress && cd my_wordpress
+   ```
+
+2. 创建docker-compose.yml文件
+
+   ```yaml
+   version: '3.3'
+   services:
+      db:
+        image: mysql:5.7
+        volumes:
+          - db_data:/var/lib/mysql
+        restart: always
+        environment:
+          MYSQL_ROOT_PASSWORD: somewordpress
+          MYSQL_DATABASE: wordpress
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+   
+      wordpress:
+        depends_on:
+          - db
+        image: wordpress:latest
+        ports:
+          - "8000:80"
+        restart: always
+        environment:
+          WORDPRESS_DB_HOST: db:3306
+          WORDPRESS_DB_USER: wordpress
+          WORDPRESS_DB_PASSWORD: wordpress
+          WORDPRESS_DB_NAME: wordpress
+   volumes:
+       db_data: {}
+   ```
+
+3. 通过命令一键启动项目
+
+   ```shell
+   docker-compose up [-d]
+   ```
+
+4. 登录：http://localhost:8000验证
 
 # Docker Swarm
 
