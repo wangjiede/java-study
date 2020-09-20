@@ -1377,12 +1377,8 @@ configs:
 3. 通过命令一键启动项目
 
    ```shell
-   docker-compose up [-d]
+   docker-compose up [-d] [--build]
    ```
 
 4. 登录：http://localhost:8000验证
-
-# Docker Swarm
-
-# CI/CD之Jenkins
 
