@@ -2267,4 +2267,197 @@ XML(EXtensible Markup Language)：扩展标记(标签)语言
   }
   ```
 
-  
+  # Java8新特性
+
+  ### Lambda表达式
+
+  Lambda是一个匿名函数，我们可以把Lambda表达式理解为一段可以传递的代码(将代码像数据一样传递)。使它可以写出更简洁更灵活的代码。作为一种更紧凑的代码风格，使Java语言表达能力得到了提升。
+
+  **举例:**
+
+  ```java
+  //Lambda表达式写法
+  //格式：-> Lambda操作符
+  //	   ->左边：Lambda形参列表(其实就是接口中的抽象方法形参列表)
+  //	   ->右边：Lambda体(重写的抽象方法的方法体)
+  Comparator<Integer> com = (o1,o2) -> Integer.compare(o1,o2);
+  int result = com.compare(31,35);
+  ```
+
+  **使用：**
+
+  `语法格式一`：无参无返回值
+
+  ```java
+  Runnable runnable1 = () -> {System.out.println("我爱故宫")};
+  ```
+
+  `语法格式二`：需要一个参数，但是无返回值
+
+  ```java
+  Consumer<String> con = (String s) -> {System.out.println("测试一下"+s)};
+  con.accept("哈哈");
+  ```
+
+  `语法格式三`：数据类型可以省略，因为可以由编译器推断得出，成为类型推断；
+
+  ```java
+  Consumer<String> con = (s) -> {System.out.println("测试一下"+s)};
+  ```
+
+  `语法格式四`：若只需要一个参数时，参数的小括号可以省略
+
+  ```java
+  Consumer<String> con = s -> {System.out.println("测试一下"+s)};
+  ```
+
+  `语法格式五`：需要两个或两以上的参数，多条执行语句，并且可以有返回值
+
+  ```java
+  Comparator<Integer> com = (o1, o2) -> {
+              System.out.println(o1);
+              System.out.println(o2);
+              return o1.compareTo(o2);
+          };
+  com.compare(12,21);
+  ```
+
+  `语法格式六`：当Lambda体只有一条语句时，return与大括号都可以省略
+
+  ```java
+  Comparator<Integer> com = (o1,o2) -> Integer.compare(o1,o2);
+  int result = com.compare(31,35);
+  ```
+
+  **本质：**作为函数式接口的实例
+
+  ### 函数式接口
+
+  函数式接口：一个接口中只有一个抽象方法，可以称为函数式接口，才能支持Lambda表达式。在java.util.function包下定义了Java8丰富的函数式接口。
+
+  ![image-20201105144921198](images/image-20201105144921198.png)
+
+  ### 方法引用与构造器引用
+
+  `方法引用本质上就是Lambda表达式，而Lambda表达式作为函数式接口的实例，所以方法引用也是函数式接口的实例。`
+
+  **使用情景：**当要传递给Lambda体的操作，已经有方法实现了，可以使用方法引用。
+
+  **使用要求：**要求接口中的方法形参列表和返回值类型与方法引用的方法的形参列表和返回值类型相同。
+
+  **使用格式：**类(对象)::方法名，具体分为如下三种情况
+
+  - 对象::非静态方法，如：
+
+    ```JAVA
+    Consumer<String> con1 = s -> System.out.println(s);
+    con2.accept("测试一下");
+    ----------------------------------------------------
+    Consumer<String> con2 = System.out::println;
+    con2.accept("测试一下");
+    ```
+
+  - 类::静态方法，如：
+
+    ```java
+    Comparator<Integer> com1 = (o1, o2) ->  Integer.compare(o1,o2);
+    com1.compare(12, 21);
+    ------------------------------------------------------
+    Comparator<Integer> com2 = Integer::compareTo;
+    com2.compare(12, 21);
+    ```
+
+  - 类::非静态方法，如：
+
+    ```java
+    Comparator<String> com1 = (s1,s2) -> s1.compareTo(s2);
+    com1.compare("abc", "abd");
+    ----------------------------------------------------------
+    Comparator<String> com2 = String::compareTo;
+    com2.compare("abc", "abd");
+    ```
+
+  **构造器引用：**实质上还是方法引用，只是引用的是构造器方法。如：
+
+  ```java
+  Supplier<String> supplier1 = ()-> new String();
+  supplier1.get();
+  ---------------------------------------------------
+  Supplier<String> supplier2 = String::new;
+  supplier2.get();
+  ```
+
+  **数组引用：**与构造器引用相同，将数组看成一个特殊的类，如：
+
+  ```java
+  Function<Integer,String[]> function1 = i -> new String[i];
+  function1.apply(10);
+  -----------------------------------------------------------
+  Function<Integer,String[]> function2 = String[]::new;
+  function2.apply(10);
+  ```
+
+### Stream API
+
+Stream是数据渠道，用于操作数据源(集合、数组等)所生成的元素序列。
+
+`集合讲的是数据，Stream讲的是计算`
+
+**注意：**
+
+- Stream自己不会存储元素
+- Stream不会改变源对象，相反，他们会返回一个持有结果的新Stream。
+- Stream操作是延迟的。这意味着他们会等到需要结果的时候才执行。
+
+**Stream的操作三步骤**
+
+1. 创建Stream：一个数据源(如集合、数组)，获取一个流
+2. 中间操作：一个中间操作链，对数据源的数据进行处理
+3. 终止操作(终端操作)：一旦执行终止操作，就执行中间操作链，并产生结果。之后不会再被使用。
+
+**创建Stream的方式：**
+
+1. 通过集合
+
+   ```java
+   List<Integer> intList = Arrays.asList(1,2,3,4,5,6,7,8,9);
+   //获得Stream对象,顺序流
+   Stream<int> stream = intList.stream();
+   //获得Stream对象,并行流
+   Stream<Integer> parallelStream = intList.parallelStream();
+   ```
+
+2. 通过数组
+
+   ```java
+   String[] stringArray = new String[]{"a","b","c","d","e","f","g"};
+   Stream<String> stream = Arrays.stream(stringArray);
+   int[] intArray = new int[]{1,2,3,4,5,6};
+   IntStream intStream = Arrays.stream(intArray);
+   ```
+
+3. 通过Stream的of()方法
+
+   ```java
+   Stream<Integer> integerStream = Stream.of(1, 2, 3, 4, 5, 6);
+   ```
+
+4. 创建无限流
+
+   ```java
+   //迭代，从0开始，取10个偶数，每次都将这个偶数打印出来
+   Stream.iterate(0, t -> t + 2).limit(10).forEach(System.out::println);
+   //生成,生成10个[0,1)的随机数，并且每次打印
+   Stream.generate(Math::random).limit(10).forEach(System.out::println);
+   ```
+
+**中间操作**
+
+1. 筛选与切片
+   - filter(Predicate p)：接收Lambda表达式，从流中排除某些元素
+   - limit(n)：截断流，使其元素不超过给定数量。
+   - skip(n)：跳过元素，返回一个扔掉了n个元素的流。若流中元素不足n个，则返回一个空流，与limit(n)互补。
+   - distinct()：去重，通过流所生成元素的hashCode()和equals()去除重复元素。
+
+### Optional类
+
