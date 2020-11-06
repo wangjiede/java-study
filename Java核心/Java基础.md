@@ -2458,6 +2458,31 @@ Stream是数据渠道，用于操作数据源(集合、数组等)所生成的元
    - limit(n)：截断流，使其元素不超过给定数量。
    - skip(n)：跳过元素，返回一个扔掉了n个元素的流。若流中元素不足n个，则返回一个空流，与limit(n)互补。
    - distinct()：去重，通过流所生成元素的hashCode()和equals()去除重复元素。
+   
+2. 映射
+
+   - map(Function f)：接收一个函数作为参数，将元素转换为其他形式或提取信息，该函数会被应用到每个元素，并将其映射成一个新的元素。
+   - flatMap(Function f)：接口一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流。
+
+   注意：以上两个函数类似ArrayList的add()和addAll()方法的区别。
+
+3. 排序
+
+   - sorted()：生产一个新流，其中按自然顺序排序。
+   - sorted(Comparator com)：生产一个新流，其中按比较器顺序排序。
+
+**终止操作**
+
+1. 匹配与查找
+   - allMatch(Predicate p)：检查是否匹配所有元素
+   - anyMatch(Predicate p)：检查是否至少匹配一个元素
+   - noneMatch(Predicate p)：检查是否没有匹配的元素
+   - findFirst()：返回第一个元素
+   - findAny()：返回当前流中的任意元素
+   - count()：返回流中元素的总个数
+   - max(Comparator c)：返回流中最大值
+   - min(Comparator c)：返回流中最小值
+   - forEach(Consumer c)：内部迭代
 
 ### Optional类
 
