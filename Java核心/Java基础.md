@@ -2483,6 +2483,35 @@ Stream是数据渠道，用于操作数据源(集合、数组等)所生成的元
    - max(Comparator c)：返回流中最大值
    - min(Comparator c)：返回流中最小值
    - forEach(Consumer c)：内部迭代
+   
+2. 归约
+
+   - reduce(T iden,BinaryOperator p)：可以将流中元素反复结合起来，得到一个值，返回T。
+   - reduce(BinaryOperator p)：可以将流中元素返回结合起来，得到一个值，返回Optional<T>
+
+3. 收集
+
+   conllect(Conllector c)：将流转换为其他形式。接收一个Conllector接口的实现，用于给Stream接口中元素做汇总的方法。Conllector接口中方法的实现决定了如何对流执行收集的操作(如收集到list、set、map)。另外Conllectors实用类实现了很多静态方法，可以方便的创建常见收集器实例，具体方法与实例如下表：
+
+   ![image-20201109144500674](images/image-20201109144500674.png)
+
+   ![image-20201109144716890](images/image-20201109144716890.png)
 
 ### Optional类
 
+`是一个容器类，它可以保存类型T的值，代表这个值存在。或者仅仅保存null，表示这个值不存在。原来用null表示一个值不存在，现在Optional可以更好的表达这个概念。并且可以避免空**指针异常。`**
+
+**常用方法**
+
+1. 创建Optional类对象的方法：
+   - Optional.of(T t)：创建一个Optional实例，t必须非空。
+   - Optional.empty()：创建一个空的Optional实例。
+   - Optional,.ofNullable()：t可以为空。
+2. 判断Optional容器中是否包含对象：
+   - boolean isPresent()：判断是否包含对象。
+   - void ifPresent(Consumer<? supper T> consumer)：如果有值就执行Consumer接口的实现代码，并且该值会作为参数传给它。
+3. 获取Optional容器的对象：
+   - T get()：如果调用对象包含值，返回该值，否则抛异常。
+   - T orElse(T other)：如果有值则将其返回，否则返回指定的other对象。
+   - T orElseGet(Supplier <? extends T> other)：如果有值将其返回，否者返回由Supplier接口实现提供的对象
+   - T orElseThrow(Supplier <? extends X> exceptionSupplier)：如果有值则将其返回，否者抛出由Supplier接口实现提供的异常。
